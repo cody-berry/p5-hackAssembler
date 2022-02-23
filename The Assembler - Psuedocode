@@ -1,0 +1,19 @@
+The Assembler - Psuedocode
+	This code translates  __.asm into __.hack where __.asm has no errors.
+
+	Parser, Code, SymbolTable, Main
+
+
+
+
+
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
