@@ -3,6 +3,50 @@ The Assembler - Psuedocode
 
 	Parser, Code, SymbolTable, Main
 
+Repeat:
+    Read file
+    Get the next instruction (commit: display the file in text)
+    No symbols, no whitesapce:
+        If line begins with @:
+            It's an A-instruction.
+            string = "0"
+            Convert the number after it using a decimal to binary conversion:
+                While the length is less than 15:
+                    If the number is even:
+                        Add a 0 to the left of your list
+                    If the number is odd:
+                        add a 1 to the left of your list
+                    Repeat with the integer version of the number divided by 2, make that "number"
+            For each item in your resulting list:
+                Append the items from left to right to the string
+        Otherwise:
+            It's a C-instruction
+            string = "111"
+            Split the destination bit, computation bit, and jump bit:
+                Destination:
+                    Find .indexOf("=").
+                    If the result from the last line isn't -1:
+                        While the result of taking the string at the second-last line is a space:
+                            Decrement the indexOf variable.
+                        While the result of taking a variable starting from 0 is a space:
+                            Increment the variable starting from 0
+                        The destination is a substring starting from the variable starting from 0 and the indexOf variable.
+                    Otherwise:
+                        destination = "000"
+                Jump:
+                    Find .indexOf(";")
+                    If the result from the last line isn't -1:
+                        While the result of taking the string at the second-last line is a space:
+                            Increment the indexOf variable.
+                        While the result of taking a variable starting from the length of the line is a space:
+                            Decrement the variable starting from the length of the line
+                        The jump is a substring starting from the variable starting from the length of the line and the indexOf variable
+                        Convert it
+                    Otherwise:
+                        jump = "000"
+
+
+
 
 
 
