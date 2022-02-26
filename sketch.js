@@ -107,10 +107,48 @@ function draw() {
                 // and destinationEnd and then we transform it with the parser.
                 let destinationCode = file[i].substring(destinationStart, destinationEnd)
                 destination = parser.destDict[destinationCode]
+            } else {
+                destination = "000"
+            }
+            // The jump.
+            let jumpStart = file[i].indexOf(";")
 
-                if (frameCount === 5) {
-                    console.log(file[i] + ": " + destination)
+            let jump
+
+            if (frameCount === 5) {
+                console.log(file[i])
+            }
+
+            // If the result isn't -1...
+            if (jumpStart !== -1) {
+                // define the jump start
+                let jumpEnd = file[i].length
+
+                console.log(jumpEnd)
+
+                // While the result of file[i].charAt(jumpEnd) is ' ',
+                // we decrement jumpEnd.
+                while (file[i].charAt(jumpEnd) === ' ') {
+                    jumpEnd--
                 }
+
+                // While the result of file[i].charAt(jumpStart) is '
+                // ', we increment jumpStart.
+                while (file[i].charAt(jumpStart) === ' ') {
+                    jumpStart++
+                }
+
+                // now the destination is the substring of destinationStart
+                // and destinationEnd and then we transform it with the parser.
+                let jumpCode = file[i].substring(jumpStart+1, jumpEnd)
+                jump = parser.jumpDict[jumpCode]
+            } else {
+                jump = "000"
+            }
+
+
+            if (frameCount === 5) {
+                console.log(file[i] + ": " + string + destination + jump)
             }
         }
     }
