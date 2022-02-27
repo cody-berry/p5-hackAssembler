@@ -146,6 +146,8 @@ function draw() {
                 jump = "000"
             }
 
+            // Computation
+
 
             if (frameCount === 5) {
                 console.log(file[i] + ": " + string + destination + jump)

@@ -44,6 +44,22 @@ Repeat:
                         Convert it
                     Otherwise:
                         jump = "000"
+                Computation:
+                    destEnd = .indexOf(=)
+                    jumpStart = .indexOf(;)
+                    If destEnd is -1:
+                        Set destEnd to 0
+                    Otherwise:
+                        As long as the result of taking the string at destEnd is a space:
+                            Increment destEnd
+                    If jumpStart is -1:
+                        Set jumpStart to the length of the current string
+                    Otherwise:
+                        As long as the result of taking the string at jumpStart is a space:
+                            Decrement jumpStart
+                    Substring starting at destEnd and ending at jumpStart is compCode
+                    Convert it
+
 
 
 
