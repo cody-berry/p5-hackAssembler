@@ -18,7 +18,7 @@ let leftDiv, middleDiv, rightDiv
 
 function preload() {
     font = loadFont('data/meiryo.ttf')
-    file = loadStrings('asm/pongL.asm')
+    file = loadStrings('asm/pong.asm')
     parser = new Parser()
 }
 
@@ -52,7 +52,7 @@ function decimal_to_binary(number) {
 }
 
 function setup() {
-    createCanvas(640, 360)
+    noCanvas()
     colorMode(HSB, 360, 100, 100, 100)
     fill(0, 0, 100)
     background(234, 34, 24)
@@ -66,118 +66,119 @@ function setup() {
 //     for (let number = 10; number < 32769; number++) {
 //         text(number + " in 15-bit binary is " + decimal_to_binary(number), 0, 15 + 14*(number-10))
 //     }
-    for (let i = 8; i < file.length; i++) {
-        // display all of the lines from line 8
-        text(file[i], 0, 15*(i-8))
+    for (let i = 0; i < file.length; i++) {
+        // we only handle it if it's not whitespace.
+        if (!(file[i].charAt(0) === ' ' || file[i].charAt(0) === '/' || file[i].length === 0)) {
+            leftDiv.html("<pre>" + i + ":</pre>", true)
+            middleDiv.html("<pre>" + file[i] + "</pre>", true)
 
-        leftDiv.html("<pre>" + (i) + ":</pre>", true)
-        middleDiv.html("<pre>" + file[i] + "</pre>", true)
 
-
-        // handling A instructions
-        if (file[i][0] === "@") {
-            let string = '0'
-            let list = decimal_to_binary(file[i].substring(1))
-            for (let bit of list) {
-                string = join([string, bit], '')
+            // handling A instructions
+            if (file[i].charAt(0) === "@") {
+                let string = '0'
+                let list = decimal_to_binary(file[i].substring(1))
+                for (let bit of list) {
+                    string = join([string, bit], '')
+                }
+                console.log(file[i] + ": " + string)
+                rightDiv.html("<pre>" + string + "</pre>", true)
             }
-            console.log(file[i] + ": " + string)
-            rightDiv.html(string)
-        }
-        // handling C instructions
-        else {
-            let string = '111'
+            // handling C instructions
+            else {
+                let string = '111'
 
-            // The destination.
-            let destinationEnd = file[i].indexOf("=")
+                // The destination.
+                let destinationEnd = file[i].indexOf("=")
 
-            let destination
+                let destination
 
-            // If the result isn't -1...
-            if (destinationEnd !== -1) {
-                // define the destination start
-                let destinationStart = 0
+                // If the result isn't -1...
+                if (destinationEnd !== -1) {
+                    // define the destination start
+                    let destinationStart = 0
 
-                // While the result of file[i].charAt(destinationEnd) is ' ',
-                // we decrement destinationEnd.
-                while (file[i].charAt(destinationEnd) === ' ') {
-                    destinationEnd--
+                    // While the result of file[i].charAt(destinationEnd) is ' ',
+                    // we decrement destinationEnd.
+                    while (file[i].charAt(destinationEnd) === ' ') {
+                        destinationEnd--
+                    }
+
+                    // While the result of file[i].charAt(destinationStart) is '
+                    // ', we increment destinationStart.
+                    while (file[i].charAt(destinationStart) === ' ') {
+                        destinationStart++
+                    }
+
+                    // now the destination is the substring of destinationStart
+                    // and destinationEnd and then we transform it with the parser.
+                    let destinationCode = file[i].substring(destinationStart, destinationEnd)
+                    destination = parser.destDict[destinationCode]
+                } else {
+                    destination = "000"
+                }
+                // The jump.
+                let jumpStart = file[i].indexOf(";")
+
+                let jump
+
+                // If the result isn't -1...
+                if (jumpStart !== -1) {
+                    // define the jump start
+                    let jumpEnd = file[i].length
+
+                    // console.log(jumpEnd)
+
+                    // While the result of file[i].charAt(jumpEnd) is ' ',
+                    // we decrement jumpEnd.
+                    while (file[i].charAt(jumpEnd) === ' ') {
+                        jumpEnd--
+                    }
+
+                    // While the result of file[i].charAt(jumpStart) is '
+                    // ', we increment jumpStart.
+                    while (file[i].charAt(jumpStart) === ' ') {
+                        jumpStart++
+                    }
+
+                    // now the destination is the substring of destinationStart
+                    // and destinationEnd and then we transform it with the parser.
+                    let jumpCode = file[i].substring(jumpStart + 1, jumpEnd)
+                    jump = parser.jumpDict[jumpCode]
+                } else {
+                    jump = "000"
                 }
 
-                // While the result of file[i].charAt(destinationStart) is '
-                // ', we increment destinationStart.
-                while (file[i].charAt(destinationStart) === ' ') {
-                    destinationStart++
-                }
+                // Computation
+                let dstEnd = file[i].indexOf("=")
+                let jmpStart = file[i].indexOf(";")
 
-                // now the destination is the substring of destinationStart
-                // and destinationEnd and then we transform it with the parser.
-                let destinationCode = file[i].substring(destinationStart, destinationEnd)
-                destination = parser.destDict[destinationCode]
-            } else {
-                destination = "000"
+                let comp
+
+                if (dstEnd === -1) {
+                    dstEnd = 0
+                } else {
+                    if (file[i].charAt(dstEnd) === ' ' || file[i].charAt(dstEnd) === '=') {
+                        dstEnd++
+                    }
+                }
+                if (jmpStart === -1) {
+                    jmpStart = file[i].length
+                } else {
+                    if (file[i].charAt(jmpStart) === ' ') {
+                        jmpStart--
+                    }
+                }
+                let compCode = file[i].substring(dstEnd, jmpStart)
+
+                comp = parser.compDict[compCode]
+
+                console.log(file[i] + ": " + string + comp + destination + jump)
+
+                console.log(string + comp + destination + jump)
+
+                rightDiv.html("<pre>" + string + comp +
+                     destination + jump + "</pre>", true)
             }
-            // The jump.
-            let jumpStart = file[i].indexOf(";")
-
-            let jump
-
-            // If the result isn't -1...
-            if (jumpStart !== -1) {
-                // define the jump start
-                let jumpEnd = file[i].length
-
-                // console.log(jumpEnd)
-
-                // While the result of file[i].charAt(jumpEnd) is ' ',
-                // we decrement jumpEnd.
-                while (file[i].charAt(jumpEnd) === ' ') {
-                    jumpEnd--
-                }
-
-                // While the result of file[i].charAt(jumpStart) is '
-                // ', we increment jumpStart.
-                while (file[i].charAt(jumpStart) === ' ') {
-                    jumpStart++
-                }
-
-                // now the destination is the substring of destinationStart
-                // and destinationEnd and then we transform it with the parser.
-                let jumpCode = file[i].substring(jumpStart+1, jumpEnd)
-                jump = parser.jumpDict[jumpCode]
-            } else {
-                jump = "000"
-            }
-
-            // Computation
-            let dstEnd = file[i].indexOf("=")
-            let jmpStart = file[i].indexOf(";")
-
-            let comp
-
-            if (dstEnd === -1) {
-                dstEnd = 0
-            } else {
-                if (file[i].charAt(dstEnd) === ' ' || file[i].charAt(dstEnd) === '=') {
-                    dstEnd++
-                }
-            }
-            if (jmpStart === -1) {
-                jmpStart = file[i].length
-            } else {
-                if (file[i].charAt(jmpStart) === ' ') {
-                    jmpStart--
-                }
-            }
-            let compCode = file[i].substring(dstEnd, jmpStart)
-
-            comp = parser.compDict[compCode]
-
-            console.log(file[i] + ": " + string + comp + destination + jump)
-
-            console.log(comp)
-
-            rightDiv.html("<pre>" + string + comp + destination + jump + "</pre>")
         }
     }
 }
