@@ -1,4 +1,4 @@
-The Assembler - Psuedocode
+The Assembler - Pseudocode
 	This code translates  __.asm into __.hack where __.asm has no errors.
 
 	Parser, Code, SymbolTable, Main
@@ -6,7 +6,7 @@ The Assembler - Psuedocode
 Repeat:
     Read file
     Get the next instruction (commit: display the file in text)
-    No symbols, no whitesapce:
+    No symbols, no whitespace:
         If line begins with @:
             It's an A-instruction.
             string = "0"
@@ -59,6 +59,7 @@ Repeat:
                             Decrement jumpStart
                     Substring starting at destEnd and ending at jumpStart is compCode
                     Convert it
+                Whitespace:
 
 
 

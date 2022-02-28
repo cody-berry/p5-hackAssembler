@@ -12,6 +12,10 @@ let file
 // our table for conversion between C-instruction mysterious symbols and binary
 let parser
 
+// our div for display
+let leftDiv, middleDiv, rightDiv
+
+
 function preload() {
     font = loadFont('data/meiryo.ttf')
     file = loadStrings('asm/pongL.asm')
@@ -50,17 +54,25 @@ function decimal_to_binary(number) {
 function setup() {
     createCanvas(640, 360)
     colorMode(HSB, 360, 100, 100, 100)
-}
-
-function draw() {    
-    background(234, 34, 24)
     fill(0, 0, 100)
+    background(234, 34, 24)
+
+    leftDiv = select("#left")
+    middleDiv = select("#middle")
+    rightDiv = select("#right")
+
+    console.log(leftDiv, middleDiv, rightDiv)
+
 //     for (let number = 10; number < 32769; number++) {
 //         text(number + " in 15-bit binary is " + decimal_to_binary(number), 0, 15 + 14*(number-10))
 //     }
-    for (let i = 8; i < 20; i++) {
+    for (let i = 8; i < file.length; i++) {
         // display all of the lines from line 8
         text(file[i], 0, 15*(i-8))
+
+        leftDiv.html("<pre>" + (i) + ":</pre>", true)
+        middleDiv.html("<pre>" + file[i] + "</pre>", true)
+
 
         // handling A instructions
         if (file[i][0] === "@") {
@@ -69,9 +81,8 @@ function draw() {
             for (let bit of list) {
                 string = join([string, bit], '')
             }
-            if (frameCount === 5) {
-                console.log(file[i] + ": " + string)
-            }
+            console.log(file[i] + ": " + string)
+            rightDiv.html(string)
         }
         // handling C instructions
         else {
@@ -81,10 +92,6 @@ function draw() {
             let destinationEnd = file[i].indexOf("=")
 
             let destination
-
-            if (frameCount === 5) {
-                console.log(file[i])
-            }
 
             // If the result isn't -1...
             if (destinationEnd !== -1) {
@@ -115,16 +122,12 @@ function draw() {
 
             let jump
 
-            if (frameCount === 5) {
-                console.log(file[i])
-            }
-
             // If the result isn't -1...
             if (jumpStart !== -1) {
                 // define the jump start
                 let jumpEnd = file[i].length
 
-                console.log(jumpEnd)
+                // console.log(jumpEnd)
 
                 // While the result of file[i].charAt(jumpEnd) is ' ',
                 // we decrement jumpEnd.
@@ -147,11 +150,39 @@ function draw() {
             }
 
             // Computation
+            let dstEnd = file[i].indexOf("=")
+            let jmpStart = file[i].indexOf(";")
 
+            let comp
 
-            if (frameCount === 5) {
-                console.log(file[i] + ": " + string + destination + jump)
+            if (dstEnd === -1) {
+                dstEnd = 0
+            } else {
+                if (file[i].charAt(dstEnd) === ' ' || file[i].charAt(dstEnd) === '=') {
+                    dstEnd++
+                }
             }
+            if (jmpStart === -1) {
+                jmpStart = file[i].length
+            } else {
+                if (file[i].charAt(jmpStart) === ' ') {
+                    jmpStart--
+                }
+            }
+            let compCode = file[i].substring(dstEnd, jmpStart)
+
+            comp = parser.compDict[compCode]
+
+            console.log(file[i] + ": " + string + comp + destination + jump)
+
+            console.log(comp)
+
+            rightDiv.html("<pre>" + string + comp + destination + jump + "</pre>")
         }
     }
+}
+
+function draw() {    
+    // background(234, 34, 24)
+
 }
