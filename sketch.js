@@ -18,7 +18,7 @@ let leftDiv, middleDiv, rightDiv
 
 function preload() {
     font = loadFont('data/meiryo.ttf')
-    file = loadStrings('asm/pong.asm')
+    file = loadStrings('asm/pongL.asm')
     parser = new Parser()
 }
 
@@ -57,18 +57,58 @@ function setup() {
     fill(0, 0, 100)
     background(234, 34, 24)
 
+    // our symbol table?
+    let symbolTable = {
+        "R0": 0,
+        "R1": 1,
+        "R2": 2,
+        "R3": 3,
+        "R4": 4,
+        "R5": 5,
+        "R6": 6,
+        "R7": 7,
+        "R8": 8,
+        "R9": 9,
+        "R10": 10,
+        "R11": 11,
+        "R12": 12,
+        "R13": 13,
+        "R14": 14,
+        "R15": 15,
+        "Screen": 16384,
+        "KBD": 24576,
+        "SP": 0,
+        "LCL": 1,
+        "ARG": 2,
+        "THIS": 3,
+        "THAT": 4
+    }
+
     leftDiv = select("#left")
     middleDiv = select("#middle")
     rightDiv = select("#right")
 
     console.log(leftDiv, middleDiv, rightDiv)
 
+    // for our symbol table, let's iterate through the file.
+    let linesPassed = 0
+
+    for (let i = 0; i < file.length; i++) {
+        if (file[i][0] !== "/" && file[i][0] !== " " && file[i][0] !== "&" && file[i].length > 0) {
+            linesPassed++
+        }
+        if (file[i][0] === "(") {
+
+        }
+    }
+
+
 //     for (let number = 10; number < 32769; number++) {
 //         text(number + " in 15-bit binary is " + decimal_to_binary(number), 0, 15 + 14*(number-10))
 //     }
     for (let i = 0; i < file.length; i++) {
         // we only handle it if it's not whitespace.
-        if (!(file[i].charAt(0) === ' ' || file[i].charAt(0) === '/' || file[i].length === 0)) {
+        if (!(file[i].charAt(0) === ' ' || file[i].charAt(0) === '/' || file[i].length === 0 || file[i].charAt(0) === "")) {
             leftDiv.html("<pre>" + i + ":</pre>", true)
             middleDiv.html("<pre>" + file[i] + "</pre>", true)
 
@@ -182,31 +222,7 @@ function setup() {
         }
     }
 
-    // our symbol table?
-    let symbolTable = {
-        "R1": 1,
-        "R2": 2,
-        "R3": 3,
-        "R4": 4,
-        "R5": 5,
-        "R6": 6,
-        "R7": 7,
-        "R8": 8,
-        "R9": 9,
-        "R10": 10,
-        "R11": 11,
-        "R12": 12,
-        "R13": 13,
-        "R14": 14,
-        "R15": 15,
-        "Screen": 16384,
-        "KBD": 24576,
-        "SP": 0,
-        "LCL": 1,
-        "ARG": 2,
-        "THIS": 3,
-        "THAT": 4
-    }
+
 }
 
 function draw() {    
