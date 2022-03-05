@@ -18,7 +18,7 @@ let leftDiv, middleDiv, rightDiv
 
 function preload() {
     font = loadFont('data/meiryo.ttf')
-    file = loadStrings('asm/pongL.asm')
+    file = loadStrings('asm/Pong.asm')
     parser = new Parser()
 }
 
@@ -52,37 +52,36 @@ function decimal_to_binary(number) {
 }
 
 function setup() {
-    noCanvas()
     colorMode(HSB, 360, 100, 100, 100)
+    noCanvas()
     fill(0, 0, 100)
     background(234, 34, 24)
 
     // our symbol table?
-    let symbolTable = {
-        "R0": 0,
-        "R1": 1,
-        "R2": 2,
-        "R3": 3,
-        "R4": 4,
-        "R5": 5,
-        "R6": 6,
-        "R7": 7,
-        "R8": 8,
-        "R9": 9,
-        "R10": 10,
-        "R11": 11,
-        "R12": 12,
-        "R13": 13,
-        "R14": 14,
-        "R15": 15,
-        "Screen": 16384,
-        "KBD": 24576,
-        "SP": 0,
-        "LCL": 1,
-        "ARG": 2,
-        "THIS": 3,
-        "THAT": 4
-    }
+    let symbolTable = {}
+    symbolTable["R0"] = 0
+    symbolTable["R1"] = 1
+    symbolTable["R2"] = 2
+    symbolTable["R3"] = 3
+    symbolTable["R4"] = 4
+    symbolTable["R5"] = 5
+    symbolTable["R6"] = 6
+    symbolTable["R7"] = 7
+    symbolTable["R8"] = 8
+    symbolTable["R9"] = 9
+    symbolTable["R10"] = 10
+    symbolTable["R11"] = 11
+    symbolTable["R12"] = 12
+    symbolTable["R13"] = 13
+    symbolTable["R14"] = 14
+    symbolTable["R15"] = 15
+    symbolTable["SCREEN"] = 16384
+    symbolTable["KBD"] = 24576
+    symbolTable["SP"] = 0
+    symbolTable["LCL"] = 1
+    symbolTable["ARG"] = 2
+    symbolTable["THIS"] = 3
+    symbolTable["THAT"] = 4
 
     leftDiv = select("#left")
     middleDiv = select("#middle")
@@ -90,25 +89,64 @@ function setup() {
 
     console.log(leftDiv, middleDiv, rightDiv)
 
-    // for our symbol table, let's iterate through the file.
+    // for our 1st pass, adding the labels in, let's iterate through the
+    // file.
     let linesPassed = 0
 
     for (let i = 0; i < file.length; i++) {
-        if (file[i][0] !== "/" && file[i][0] !== " " && file[i][0] !== "&" && file[i].length > 0) {
-            linesPassed++
-        }
+        // if the beginning is a paren, it's a label
         if (file[i][0] === "(") {
-
+            symbolTable[file[i].substring(1, file[i].length - 1)] = linesPassed + 1
+        } else if (file[i][0] !== "/" && file[i][0] !== "&" && file[i].length > 0) {
+            // otherwise, if it's not whitespace, we increment linesPassed.
+            linesPassed++
         }
     }
 
+    // let's iterate through the file again to find any variable in our
+    // symbol table
+    let n = 16
+    for (let i = 0; i < file.length; i++) {
+        const line = file[i]
 
-//     for (let number = 10; number < 32769; number++) {
-//         text(number + " in 15-bit binary is " + decimal_to_binary(number), 0, 15 + 14*(number-10))
-//     }
+        if (file[i].charAt(0) !== '/') {
+            // where is the start of the line?
+            let start = 0
+
+            // while file[i].charAt(start) it is a whitespace, we increment
+            // start.
+            while (line.charAt(start) === ' ' || line.charAt(start) === "    ") {
+                start++
+            }
+
+
+            if (file[i].charAt(start) === "@") {
+                // let's define a huge regular expression! This one just
+                // said that if it is a variable, some character can't be a
+                // number or a newline.
+                let regExp = new RegExp("[^0-9].")
+
+                if (regExp.test(line.substring(start + 1, line.length))) {
+                    console.log(line.substring(start + 1, line.length))
+                    if (!(line.substring(start + 1, line.length) in symbolTable)) {
+                        symbolTable[line.substring(start + 1, line.length)] = n
+                        n++
+                    }
+                }
+            }
+        }
+    }
+    console.log(symbolTable)
+
+
+
+
+    for (let number = 10; number < 32769; number++) {
+        text(number + " in 15-bit binary is " + decimal_to_binary(number), 0, 15 + 14*(number-10))
+    }
     for (let i = 0; i < file.length; i++) {
         // we only handle it if it's not whitespace.
-        if (!(file[i].charAt(0) === ' ' || file[i].charAt(0) === '/' || file[i].length === 0 || file[i].charAt(0) === "")) {
+        if (!(file[i].charAt(0) === ' ' || file[i].charAt(0) === '/' || file[i].length === 0 || file[i].charAt(0) === '(')) {
             leftDiv.html("<pre>" + i + ":</pre>", true)
             middleDiv.html("<pre>" + file[i] + "</pre>", true)
 
@@ -116,7 +154,19 @@ function setup() {
             // handling A instructions
             if (file[i].charAt(0) === "@") {
                 let string = '0'
-                let list = decimal_to_binary(file[i].substring(1))
+
+                // now let's identify if the number is a variable or not
+                // with our earlier regular expression that says that if the
+                // rest is a variable, then there has to be at least 1
+                // non-number non-newline character.
+                let list
+                let regExp = new RegExp("[^0-9].")
+
+                if (regExp.test(file[i].substring(1))) {
+                    list = decimal_to_binary(symbolTable[file[i].substring(1)])
+                } else {
+                    list = decimal_to_binary(file[i].substring(1))
+                }
                 for (let bit of list) {
                     string = join([string, bit], '')
                 }

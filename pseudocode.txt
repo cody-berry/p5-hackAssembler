@@ -67,11 +67,11 @@ Repeat:
                     n = 16
                     iterate through the file again (i):
                         if file[i][0] = "@":
-                            regExp = new regExp([A-z]*(!)?(#)?($)?(%)?(^)?(&)?(*)?)
+                            regExp = new regExp([A-z]*(!)?(#)?($)?(%)?(^)?(&)?(/*)?(.)?)
                             if regExp.test(file[i].substring(1, file[i].length):
                                 if file[i].substring(1, file[i].length):
                                     Add the pair (file[i].substring(1, file[i].length), n to the table)
-
+                            n++
 
 
 
