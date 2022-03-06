@@ -18,7 +18,7 @@ let leftDiv, middleDiv, rightDiv
 
 function preload() {
     font = loadFont('data/meiryo.ttf')
-    file = loadStrings('asm/Pong.asm')
+    file = loadStrings('asm/Rect.asm')
     parser = new Parser()
 }
 
@@ -96,7 +96,7 @@ function setup() {
     for (let i = 0; i < file.length; i++) {
         // if the beginning is a paren, it's a label
         if (file[i][0] === "(") {
-            symbolTable[file[i].substring(1, file[i].length - 1)] = linesPassed + 1
+            symbolTable[file[i].substring(1, file[i].length - 1)] = linesPassed
         } else if (file[i][0] !== "/" && file[i][0] !== "&" && file[i].length > 0) {
             // otherwise, if it's not whitespace, we increment linesPassed.
             linesPassed++
@@ -136,7 +136,7 @@ function setup() {
             }
         }
     }
-    console.log(symbolTable)
+    console.log(file)
 
 
 
@@ -145,14 +145,16 @@ function setup() {
         text(number + " in 15-bit binary is " + decimal_to_binary(number), 0, 15 + 14*(number-10))
     }
     for (let i = 0; i < file.length; i++) {
+        let line = trim(file[i])
+
         // we only handle it if it's not whitespace.
-        if (!(file[i].charAt(0) === ' ' || file[i].charAt(0) === '/' || file[i].length === 0 || file[i].charAt(0) === '(')) {
+        if (!(line.charAt(0) === ' ' || line.charAt(0) === '/' || line.length === 0 || line.charAt(0) === '(')) {
             leftDiv.html("<pre>" + i + ":</pre>", true)
-            middleDiv.html("<pre>" + file[i] + "</pre>", true)
+            middleDiv.html("<pre>" + line + "</pre>", true)
 
 
             // handling A instructions
-            if (file[i].charAt(0) === "@") {
+            if (line.charAt(0) === "@") {
                 let string = '0'
 
                 // now let's identify if the number is a variable or not
@@ -162,15 +164,15 @@ function setup() {
                 let list
                 let regExp = new RegExp("[^0-9].")
 
-                if (regExp.test(file[i].substring(1))) {
-                    list = decimal_to_binary(symbolTable[file[i].substring(1)])
+                if (regExp.test(line.substring(1))) {
+                    list = decimal_to_binary(symbolTable[line.substring(1)])
                 } else {
-                    list = decimal_to_binary(file[i].substring(1))
+                    list = decimal_to_binary(line.substring(1))
                 }
                 for (let bit of list) {
                     string = join([string, bit], '')
                 }
-                console.log(file[i] + ": " + string)
+                console.log(line + ": " + string)
                 rightDiv.html("<pre>" + string + "</pre>", true)
             }
             // handling C instructions
@@ -178,7 +180,7 @@ function setup() {
                 let string = '111'
 
                 // The destination.
-                let destinationEnd = file[i].indexOf("=")
+                let destinationEnd = line.indexOf("=")
 
                 let destination
 
@@ -189,19 +191,19 @@ function setup() {
 
                     // While the result of file[i].charAt(destinationEnd) is ' ',
                     // we decrement destinationEnd.
-                    while (file[i].charAt(destinationEnd) === ' ') {
+                    while (line.charAt(destinationEnd) === ' ') {
                         destinationEnd--
                     }
 
                     // While the result of file[i].charAt(destinationStart) is '
                     // ', we increment destinationStart.
-                    while (file[i].charAt(destinationStart) === ' ') {
+                    while (line.charAt(destinationStart) === ' ') {
                         destinationStart++
                     }
 
                     // now the destination is the substring of destinationStart
                     // and destinationEnd and then we transform it with the parser.
-                    let destinationCode = file[i].substring(destinationStart, destinationEnd)
+                    let destinationCode = line.substring(destinationStart, destinationEnd)
                     destination = parser.destDict[destinationCode]
                 } else {
                     destination = "000"
@@ -214,57 +216,56 @@ function setup() {
                 // If the result isn't -1...
                 if (jumpStart !== -1) {
                     // define the jump start
-                    let jumpEnd = file[i].length
+                    let jumpEnd = line.length
 
                     // console.log(jumpEnd)
 
                     // While the result of file[i].charAt(jumpEnd) is ' ',
                     // we decrement jumpEnd.
-                    while (file[i].charAt(jumpEnd) === ' ') {
+                    while (line.charAt(jumpEnd) === ' ') {
                         jumpEnd--
                     }
 
                     // While the result of file[i].charAt(jumpStart) is '
                     // ', we increment jumpStart.
-                    while (file[i].charAt(jumpStart) === ' ') {
+                    while (line.charAt(jumpStart) === ' ') {
                         jumpStart++
                     }
 
                     // now the destination is the substring of destinationStart
                     // and destinationEnd and then we transform it with the parser.
-                    let jumpCode = file[i].substring(jumpStart + 1, jumpEnd)
+                    let jumpCode = line.substring(jumpStart + 1, jumpEnd)
                     jump = parser.jumpDict[jumpCode]
+                    console.log(jumpStart)
                 } else {
                     jump = "000"
                 }
 
                 // Computation
-                let dstEnd = file[i].indexOf("=")
-                let jmpStart = file[i].indexOf(";")
+                let dstEnd = line.indexOf("=")
+                let jmpStart = line.indexOf(";")
 
                 let comp
 
                 if (dstEnd === -1) {
                     dstEnd = 0
                 } else {
-                    if (file[i].charAt(dstEnd) === ' ' || file[i].charAt(dstEnd) === '=') {
+                    if (line.charAt(dstEnd) === ' ' || line.charAt(dstEnd) === '=') {
                         dstEnd++
                     }
                 }
                 if (jmpStart === -1) {
-                    jmpStart = file[i].length
+                    jmpStart = line.length
                 } else {
-                    if (file[i].charAt(jmpStart) === ' ') {
+                    if (line.charAt(jmpStart) === ' ') {
                         jmpStart--
                     }
                 }
-                let compCode = file[i].substring(dstEnd, jmpStart)
+                let compCode = line.substring(dstEnd, jmpStart)
 
                 comp = parser.compDict[compCode]
 
-                console.log(file[i] + ": " + string + comp + destination + jump)
-
-                console.log(string + comp + destination + jump)
+                console.log(line + ": " + string + comp + destination + jump)
 
                 rightDiv.html("<pre>" + string + comp +
                      destination + jump + "</pre>", true)
