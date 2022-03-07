@@ -18,7 +18,7 @@ let leftDiv, middleDiv, rightDiv
 
 function preload() {
     font = loadFont('data/meiryo.ttf')
-    file = loadStrings('asm/Rect.asm')
+    file = loadStrings('asm/Max.asm')
     parser = new Parser()
 }
 
@@ -145,7 +145,13 @@ function setup() {
         text(number + " in 15-bit binary is " + decimal_to_binary(number), 0, 15 + 14*(number-10))
     }
     for (let i = 0; i < file.length; i++) {
-        let line = trim(file[i])
+        let line = file[i]
+        let indexOfAComment = line.indexOf("/")
+        if (indexOfAComment === -1) {
+            line = trim(line)
+        } else {
+            line = trim(line.substring(0, indexOfAComment))
+        }
 
         // we only handle it if it's not whitespace.
         if (!(line.charAt(0) === ' ' || line.charAt(0) === '/' || line.length === 0 || line.charAt(0) === '(')) {
@@ -209,7 +215,7 @@ function setup() {
                     destination = "000"
                 }
                 // The jump.
-                let jumpStart = file[i].indexOf(";")
+                let jumpStart = line.indexOf(";")
 
                 let jump
 
@@ -236,7 +242,6 @@ function setup() {
                     // and destinationEnd and then we transform it with the parser.
                     let jumpCode = line.substring(jumpStart + 1, jumpEnd)
                     jump = parser.jumpDict[jumpCode]
-                    console.log(jumpStart)
                 } else {
                     jump = "000"
                 }
@@ -249,17 +254,15 @@ function setup() {
 
                 if (dstEnd === -1) {
                     dstEnd = 0
-                } else {
-                    if (line.charAt(dstEnd) === ' ' || line.charAt(dstEnd) === '=') {
-                        dstEnd++
-                    }
+                }
+                if (line.charAt(dstEnd) === ' ' || line.charAt(dstEnd) === '=') {
+                    dstEnd++
                 }
                 if (jmpStart === -1) {
                     jmpStart = line.length
-                } else {
-                    if (line.charAt(jmpStart) === ' ') {
-                        jmpStart--
-                    }
+                }
+                if (line.charAt(jmpStart) === ' ') {
+                    jmpStart--
                 }
                 let compCode = line.substring(dstEnd, jmpStart)
 
