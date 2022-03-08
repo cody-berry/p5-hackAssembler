@@ -9,16 +9,16 @@ let font
 // our file
 let file
 
-// our table for conversion between C-instruction mysterious symbols and binary
+// our table for conversion between C-instruction symbols and binary
 let parser
 
-// our div for display
+// our divs for display
 let leftDiv, middleDiv, rightDiv
 
 
 function preload() {
     font = loadFont('data/meiryo.ttf')
-    file = loadStrings('asm/Max.asm')
+    file = loadStrings('asm/MaxL.asm')
     parser = new Parser()
 }
 
@@ -57,7 +57,8 @@ function setup() {
     fill(0, 0, 100)
     background(234, 34, 24)
 
-    // our symbol table?
+    // this is our symbol table initialization, where we define all of the
+    // default symbols
     let symbolTable = {}
     symbolTable["R0"] = 0
     symbolTable["R1"] = 1
@@ -94,7 +95,7 @@ function setup() {
     let linesPassed = 0
 
     for (let i = 0; i < file.length; i++) {
-        // if the beginning is a paren, it's a label
+        // if the beginning of the file is a paren, it's a label
         if (file[i][0] === "(") {
             symbolTable[file[i].substring(1, file[i].length - 1)] = linesPassed
         } else if (file[i][0] !== "/" && file[i][0] !== "&" && file[i].length > 0) {
@@ -103,8 +104,8 @@ function setup() {
         }
     }
 
-    // let's iterate through the file again to find any variable in our
-    // symbol table
+    // for our 2nd pass, adding the variables in, let's iterate through the file
+    // again to find any variable in our symbol table
     let n = 16
     for (let i = 0; i < file.length; i++) {
         const line = file[i]
@@ -121,8 +122,8 @@ function setup() {
 
 
             if (file[i].charAt(start) === "@") {
-                // let's define a huge regular expression! This one just
-                // said that if it is a variable, some character can't be a
+                // let's define a regular expression! This one just
+                // says that if it is a variable, some character can't be a
                 // number or a newline.
                 let regExp = new RegExp("[^0-9].")
 
@@ -141,11 +142,12 @@ function setup() {
 
 
 
-    for (let number = 10; number < 32769; number++) {
-        text(number + " in 15-bit binary is " + decimal_to_binary(number), 0, 15 + 14*(number-10))
-    }
+
     for (let i = 0; i < file.length; i++) {
+        // what is the line
         let line = file[i]
+
+        // cut out any comment or whitespace
         let indexOfAComment = line.indexOf("/")
         if (indexOfAComment === -1) {
             line = trim(line)
@@ -155,6 +157,7 @@ function setup() {
 
         // we only handle it if it's not whitespace.
         if (!(line.charAt(0) === ' ' || line.charAt(0) === '/' || line.length === 0 || line.charAt(0) === '(')) {
+            // text lineNumber: line, basically
             leftDiv.html("<pre>" + i + ":</pre>", true)
             middleDiv.html("<pre>" + line + "</pre>", true)
 
@@ -166,19 +169,23 @@ function setup() {
                 // now let's identify if the number is a variable or not
                 // with our earlier regular expression that says that if the
                 // rest is a variable, then there has to be at least 1
-                // non-number non-newline character.
+                // non-number character followed by a non-newline character.
                 let list
                 let regExp = new RegExp("[^0-9].")
 
                 if (regExp.test(line.substring(1))) {
+                    // if it is a variable, search it in our complete symbol
+                    // table
                     list = decimal_to_binary(symbolTable[line.substring(1)])
                 } else {
+                    // if it isn't, then we just translate it
                     list = decimal_to_binary(line.substring(1))
                 }
+                // for every bit of our list, we join the string together
                 for (let bit of list) {
                     string = join([string, bit], '')
                 }
-                console.log(line + ": " + string)
+                // then we write our string to our right div
                 rightDiv.html("<pre>" + string + "</pre>", true)
             }
             // handling C instructions
@@ -190,13 +197,14 @@ function setup() {
 
                 let destination
 
-                // If the result isn't -1...
+                // If the result isn't -1, meaning there is a destination...
                 if (destinationEnd !== -1) {
                     // define the destination start
                     let destinationStart = 0
 
                     // While the result of file[i].charAt(destinationEnd) is ' ',
-                    // we decrement destinationEnd.
+                    // we decrement destinationEnd to take account for
+                    // whitespace.
                     while (line.charAt(destinationEnd) === ' ') {
                         destinationEnd--
                     }
@@ -208,7 +216,7 @@ function setup() {
                     }
 
                     // now the destination is the substring of destinationStart
-                    // and destinationEnd and then we transform it with the parser.
+                    // and destinationEnd, and then we transform it with the parser.
                     let destinationCode = line.substring(destinationStart, destinationEnd)
                     destination = parser.destDict[destinationCode]
                 } else {
@@ -252,6 +260,8 @@ function setup() {
 
                 let comp
 
+                // just... go with the same process!
+
                 if (dstEnd === -1) {
                     dstEnd = 0
                 }
@@ -268,8 +278,7 @@ function setup() {
 
                 comp = parser.compDict[compCode]
 
-                console.log(line + ": " + string + comp + destination + jump)
-
+                // write our output to our div
                 rightDiv.html("<pre>" + string + comp +
                      destination + jump + "</pre>", true)
             }
